@@ -98,7 +98,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p package
-          cp dist/HoverThrottle.exe README.md package/
+          cp dist/HoverThrottle.exe README.md LICENSE package/
           if [ -f bin/blackbox-tools-LICENSE.txt ]; then cp bin/blackbox-tools-LICENSE.txt package/; fi
 
       - name: Upload artifact

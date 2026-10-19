@@ -8,6 +8,15 @@ Betaflight CLI 명령어를 만들어 주는 Windows 데스크톱 프로그램�
 - 전압별(셀당 4.1 / 3.8 / 3.5V) 예상 호버, 추력비 근사치
 - 그래프, HTML 리포트, 호버 원시 데이터 CSV, 기체 프리셋
 
+## 내려받기
+
+[Releases](../../releases/latest) 페이지에서 `HoverThrottle.exe` 를 받으세요. 설치 없이 바로 실행됩니다
+(Windows 10/11 64비트).
+
+- 처음 실행할 때 "Windows의 PC 보호" 창이 뜨면 **추가 정보 → 실행** 을 누르세요.
+  디지털 서명이 없는 프로그램이라 나오는 안내입니다.
+- 첫 실행은 글꼴 정보를 준비하느라 10~20초 걸릴 수 있습니다.
+
 ## 사용법
 
 1. `HoverThrottle.exe` 를 더블클릭합니다 (설치 필요 없음).
@@ -123,7 +132,11 @@ tests/                 합성 로그 테스트 + tests/fixtures 실제 로그 �
 
 상세 로그는 `%APPDATA%\HoverThrottle\app.log` 에 기록됩니다.
 
-## 라이선스 고지
+## 라이선스
+
+HoverThrottle 은 [GPL-3.0](LICENSE) 으로 배포됩니다.
+
+### 서드파티 고지
 
 배포되는 `HoverThrottle.exe` 에는 아래 서드파티 소프트웨어가 포함됩니다.
 
@@ -135,6 +148,5 @@ tests/                 합성 로그 테스트 + tests/fixtures 실제 로그 �
 | matplotlib | Matplotlib License (PSF 기반) | 그래프 |
 | numpy, pandas | BSD-3-Clause | 데이터 처리 |
 
-GPL-3.0 구성 요소를 함께 묶어 배포하므로 exe 배포본 전체가 GPL-3.0 조건을 따르며,
-배포할 때는 이 저장소의 소스코드도 함께 제공해야 합니다. GPL 전문:
-<https://www.gnu.org/licenses/gpl-3.0.html>
+GPL-3.0 구성 요소를 함께 묶어 배포하므로 exe 배포본 전체가 GPL-3.0 조건을 따릅니다.
+소스코드는 이 저장소에서 받을 수 있습니다.
