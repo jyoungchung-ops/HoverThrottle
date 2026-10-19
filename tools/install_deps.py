@@ -17,6 +17,11 @@ def pip(*args: str, check: bool = True) -> int:
 
 
 def main() -> int:
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8")
+        except (AttributeError, ValueError):
+            pass
     build = "--build" in sys.argv
     pip("-r", "requirements.txt")
     if build:

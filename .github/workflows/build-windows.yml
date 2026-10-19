@@ -11,6 +11,9 @@ permissions:
   contents: read
 
 env:
+  # Windows 러너 콘솔은 cp1252 라 한글 출력이 깨지므로 UTF-8 모드로 실행
+  PYTHONUTF8: "1"
+  PYTHONIOENCODING: utf-8
   # betaflight/blackbox-tools 는 Windows 바이너리 릴리스가 없어 고정 커밋을 소스에서 빌드한다.
   BLACKBOX_TOOLS_REF: f832acf9cd9dbe5ad8220de1a5f4eb4021523d72
 
