@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+build/
+dist/
+package/
+_blackbox-tools/
+bin/*.exe
+assets/icon.png
+*_hover_report.html
+*_windows.csv

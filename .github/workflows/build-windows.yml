@@ -1,0 +1,126 @@
+name: Build Windows exe
+
+on:
+  push:
+    branches: ["**"]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  # betaflight/blackbox-tools 는 Windows 바이너리 릴리스가 없어 고정 커밋을 소스에서 빌드한다.
+  BLACKBOX_TOOLS_REF: f832acf9cd9dbe5ad8220de1a5f4eb4021523d72
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-build.txt
+
+      - name: Install dependencies
+        run: python tools/install_deps.py --build
+
+      - name: Run tests
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: python -m pytest -q
+
+      # ---- 2순위 디코더 blackbox_decode.exe (실패해도 exe 빌드는 계속) ----
+      - name: Checkout blackbox-tools
+        id: bbt_checkout
+        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          repository: betaflight/blackbox-tools
+          ref: ${{ env.BLACKBOX_TOOLS_REF }}
+          path: _blackbox-tools
+
+      - name: Set up MSYS2 (MinGW64)
+        id: msys2
+        if: steps.bbt_checkout.outcome == 'success'
+        continue-on-error: true
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          install: mingw-w64-x86_64-gcc
+
+      - name: Build blackbox_decode.exe
+        id: bbd
+        if: steps.msys2.outcome == 'success'
+        continue-on-error: true
+        shell: msys2 {0}
+        run: |
+          cd _blackbox-tools
+          gcc -O2 -std=gnu99 -Isrc -DWIN32 -o blackbox_decode.exe \
+            src/parser.c src/tools.c src/platform.c src/stream.c src/decoders.c src/units.c \
+            src/blackbox_fielddefs.c src/semver.c src/utils.c \
+            src/blackbox_decode.c src/gpxwriter.c src/imu.c src/battery.c src/stats.c \
+            -static -pthread -lm
+          ./blackbox_decode.exe --help | head -5 || true
+          mkdir -p ../bin
+          cp blackbox_decode.exe ../bin/
+          cp LICENSE ../bin/blackbox-tools-LICENSE.txt
+
+      - name: Report blackbox_decode status
+        shell: bash
+        run: |
+          if [ -f bin/blackbox_decode.exe ]; then
+            echo "blackbox_decode.exe 포함" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::warning::blackbox_decode.exe 빌드 실패 — orangebox 디코더만 포함합니다"
+            echo "blackbox_decode.exe 미포함 (orangebox 만 사용)" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: PyInstaller build
+        run: python -m PyInstaller --noconfirm --clean HoverThrottle.spec
+
+      - name: Smoke test (exe 가 10초 동안 죽지 않고 창을 띄우는지)
+        shell: pwsh
+        run: |
+          $p = Start-Process -FilePath dist\HoverThrottle.exe -PassThru
+          Start-Sleep -Seconds 10
+          if ($p.HasExited) { Write-Error "HoverThrottle.exe exited early (code $($p.ExitCode))"; exit 1 }
+          Stop-Process -Id $p.Id -Force
+          "exe size: {0:N1} MB" -f ((Get-Item dist\HoverThrottle.exe).Length / 1MB)
+
+      - name: Prepare package
+        shell: bash
+        run: |
+          mkdir -p package
+          cp dist/HoverThrottle.exe README.md package/
+          if [ -f bin/blackbox-tools-LICENSE.txt ]; then cp bin/blackbox-tools-LICENSE.txt package/; fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: HoverThrottle-windows
+          path: package/*
+          retention-days: 30
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: HoverThrottle-windows
+          path: package
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: package/*
+          generate_release_notes: true

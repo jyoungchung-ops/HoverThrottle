@@ -1,0 +1,9 @@
+# 런타임 + 테스트 의존성 (버전 고정)
+numpy==2.5.4
+pandas==3.0.6
+PySide6-Essentials==6.12.0
+matplotlib==3.11.2
+pytest==9.1.1
+# orangebox==0.5.0 은 패키지의 잘못된 스크립트 진입점 때문에 최신 pip 에서
+# "Invalid script entry point" 오류(종료 코드 1)를 내지만 라이브러리는 정상 설치된다.
+# 그래서 별도로 설치하고 import 로 확인한다: tools/install_deps.py
